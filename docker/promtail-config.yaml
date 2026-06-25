@@ -1,0 +1,49 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: fake   # Loki in single-tenant mode
+
+scrape_configs:
+  # Ship all Docker container logs to Loki
+  # Works on Docker Desktop (Mac, Windows, Linux) via /var/run/docker.sock
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: status
+            values: ["running"]
+    relabel_configs:
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: container
+      - source_labels: ["__meta_docker_container_label_com_docker_compose_service"]
+        target_label: service
+      - source_labels: ["__meta_docker_container_log_stream"]
+        target_label: stream
+
+    pipeline_stages:
+      # Try to parse JSON structured logs (what structlog outputs)
+      - json:
+          expressions:
+            level:      level
+            event:      event
+            agent:      agent
+            request_id: request_id
+            trace_id:   trace_id
+            cost_usd:   cost_usd
+      # Promote useful fields to labels for filtering in Grafana
+      - labels:
+          level:
+          service:
+          agent:
+      # Drop noisy health check logs to reduce volume
+      - drop:
+          expression: ".*(GET /health|GET /metrics).*"
