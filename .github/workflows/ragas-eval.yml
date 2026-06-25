@@ -1,0 +1,105 @@
+# =============================================================
+# Workflow: RAGAS Eval on PR — quality gate before merge
+# =============================================================
+# Trigger: Pull request opened or updated (only when prompts change)
+# Action:
+#   1. Pull current production prompts from Langfuse
+#   2. Compare with this PR's prompt changes
+#   3. Run RAGAS eval with the NEW prompts from this PR
+#   4. Comment score on the PR
+#   5. Fail if score drops below threshold (quality gate)
+#
+# This prevents merging a prompt change that degrades quality.
+# =============================================================
+name: RAGAS Eval on Prompt PR
+
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+
+jobs:
+  ragas-eval:
+    name: RAGAS quality gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch (new prompts)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --no-dev
+
+      - name: Show diff vs production
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          uv run python scripts/manage_prompts.py diff --label production
+
+      - name: Run RAGAS evaluation with new prompts
+        env:
+          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          # Run eval — exits 1 if score < threshold (defined in prompts/prompts.yaml)
+          uv run python scripts/run_ragas_eval.py
+          # Save score for PR comment
+          cp ragas_eval_results.csv /tmp/ragas_results.csv
+
+      - name: Comment RAGAS scores on PR
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## RAGAS Evaluation Results\n\n';
+
+            try {
+              const csv = fs.readFileSync('/tmp/ragas_results.csv', 'utf8');
+              const rows = csv.trim().split('\n');
+              const headers = rows[0].split(',');
+
+              comment += '| ' + headers.join(' | ') + ' |\n';
+              comment += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
+
+              let avgScore = 0;
+              let count = 0;
+              for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i].split(',');
+                const avg = parseFloat(cols[cols.length - 1]);
+                avgScore += avg;
+                count++;
+                // Truncate question for display
+                cols[0] = cols[0].substring(0, 40) + '...';
+                comment += '| ' + cols.join(' | ') + ' |\n';
+              }
+
+              avgScore = avgScore / count;
+              const threshold = 0.60;
+              const passed = avgScore >= threshold;
+              comment += `\n**Overall Average: ${avgScore.toFixed(3)}**\n`;
+              comment += passed
+                ? `\n✅ Quality gate **PASSED** (${avgScore.toFixed(3)} ≥ ${threshold})`
+                : `\n❌ Quality gate **FAILED** (${avgScore.toFixed(3)} < ${threshold}) — review your prompt changes`;
+            } catch(e) {
+              comment += '⚠️ Could not read RAGAS results: ' + e.message;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
