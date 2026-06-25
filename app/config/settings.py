@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="sk-ant-fake", description="Anthropic API key")
     groq_api_key: str = Field(default="gsk_fake", description="Groq API key")
 
+    # --- Search ---
+    tavily_api_key: str = Field(default="", description="Tavily search API key")
+
     # --- LiteLLM Proxy ---
     litellm_proxy_url: str = "http://localhost:4000"
     litellm_master_key: str = "sk-litellm-master-key-1234"
