@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# uv
+.uv/
+uv.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.xml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Generated files
+#ragas_eval_results.csv
+*.log
+
+# Docker volumes (local bind mounts)
+docker/grafana/data/
+
+# OS
+.DS_Store
+Thumbs.db
