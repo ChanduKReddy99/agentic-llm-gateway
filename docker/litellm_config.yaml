@@ -1,0 +1,118 @@
+# =============================================================
+# LiteLLM Proxy Configuration
+# =============================================================
+# This single config enables ALL the LLM gateway features:
+#   ✅ Semantic caching (Redis)
+#   ✅ Fallback routing
+#   ✅ Load balancing
+#   ✅ Rate limiting
+#   ✅ Cost tracking
+#   ✅ Request logging
+#   ✅ Model aliases
+
+# ===== Model Definitions =======================================
+model_list:
+  # Primary model: GPT-4o-mini (fast, cheap)
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+      rpm: 100          # Requests per minute limit
+      tpm: 100000       # Tokens per minute limit
+
+  # Fallback 1: Claude Haiku (fast Anthropic)
+  - model_name: claude-haiku
+    litellm_params:
+      model: anthropic/claude-3-haiku-20240307
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # Fallback 2: Groq Llama (free tier, very fast)
+  - model_name: groq-llama
+    litellm_params:
+      model: groq/llama3-8b-8192
+      api_key: os.environ/GROQ_API_KEY
+
+  # Smart routing: auto-fallback chain
+  # If gpt-4o-mini fails → try claude-haiku → try groq-llama
+  - model_name: gpt-4o-mini-with-fallback
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      fallbacks:
+        - anthropic/claude-3-haiku-20240307
+        - groq/llama3-8b-8192
+
+  # GPT-4o (higher quality, more expensive)
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+# ===== Router Settings =========================================
+router_settings:
+  routing_strategy: latency-based-routing   # Route to fastest model
+  model_group_alias:
+    # Allow using simplified names in API calls
+    "fast": "gpt-4o-mini"
+    "quality": "gpt-4o"
+    "free": "groq-llama"
+
+# ===== General Proxy Settings ================================
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY   # Admin key for proxy management
+  database_url: null                           # Optional: Postgres for spend tracking
+
+  # Enable JSON structured logging
+  json_logs: true
+
+  # Allowed endpoints
+  allowed_routes:
+    - "/chat/completions"
+    - "/completions"
+    - "/models"
+    - "/health"
+    - "/spend/logs"
+
+# ===== Semantic Caching =========================================
+# This is the killer feature: similar prompts return cached responses
+# Cache key is based on semantic similarity (cosine > threshold)
+cache:
+  type: redis
+
+  # Redis connection
+  host: os.environ/REDIS_HOST
+  port: os.environ/REDIS_PORT
+  password: null
+
+  # Cache settings
+  ttl: 3600                      # 1 hour default TTL
+  similarity_threshold: 0.85     # Cosine similarity threshold for semantic cache
+                                 # 0.85 = very similar, 0.70 = more aggressive caching
+
+  # Redis-specific params
+  redis_startup_nodes: null
+  socket_timeout: 2
+  socket_connect_timeout: 2
+
+# ===== Logging & Callbacks =======================================
+litellm_settings:
+  # Log all requests/responses for debugging
+  success_callback: ["langfuse"]      # Log successful calls to Langfuse
+  failure_callback: ["langfuse"]      # Log failures too
+
+  # Langfuse integration (LLM observability)
+  langfuse_secret: os.environ/LANGFUSE_SECRET_KEY
+  langfuse_public_key: os.environ/LANGFUSE_PUBLIC_KEY
+  langfuse_host: os.environ/LANGFUSE_HOST
+
+  # Request/response logging
+  set_verbose: false
+
+  # Timeout settings
+  request_timeout: 60
+  num_retries: 3
+  fallbacks:
+    - gpt-4o-mini:
+      - claude-haiku
+      - groq-llama
