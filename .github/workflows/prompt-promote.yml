@@ -1,0 +1,69 @@
+# =============================================================
+# Workflow: Promote Prompts staging → production on Git tag
+# =============================================================
+# Trigger: Git tag push matching v* (e.g. v1.2.0)
+# Action:  Promote Langfuse label from "staging" to "production"
+#
+# Agents always fetch label="production" at runtime.
+# After this workflow runs, agents immediately use the new version.
+# No restart or redeploy needed.
+#
+# Typical release flow:
+#   1. Edit prompts/  → commit → PR opened
+#      → ragas-eval.yml runs → score comment on PR
+#   2. PR merged to main
+#      → prompt-push.yml runs → pushed to Langfuse as "staging"
+#   3. Manual test in staging environment
+#   4. git tag v1.2.0 && git push --tags
+#      → this workflow runs → "staging" promoted to "production"
+#      → all agents immediately use new prompts
+# =============================================================
+name: Promote Prompts to Production
+
+on:
+  push:
+    tags:
+      - "v*"       # any tag like v1.0.0, v1.2.3, etc.
+
+jobs:
+  promote:
+    name: Promote staging → production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --no-dev
+
+      - name: Promote prompts staging → production
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          uv run python scripts/manage_prompts.py promote \
+            --from-label staging \
+            --to-label production
+
+      - name: Show final status
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          uv run python scripts/manage_prompts.py status
+
+      - name: Tag summary
+        run: |
+          echo "✅ Prompts promoted to production for tag ${{ github.ref_name }}"
+          echo "Agents will use new prompts on next request (no restart needed)"
