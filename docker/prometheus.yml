@@ -1,0 +1,42 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    service: agentic-ai
+    environment: development
+
+rule_files: []
+
+scrape_configs:
+  # ─── FastAPI Application ──────────────────────────────────────
+  - job_name: 'agentic-app'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+        labels:
+          service: 'fastapi-app'
+          component: 'application'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # ─── LiteLLM Proxy ───────────────────────────────────────────
+  - job_name: 'litellm-proxy'
+    static_configs:
+      - targets: ['litellm:4000']
+        labels:
+          service: 'litellm-gateway'
+          component: 'llm-proxy'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # ─── Redis ───────────────────────────────────────────────────
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+          component: 'cache'
+
+  # ─── Prometheus Self-Monitoring ───────────────────────────────
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
