@@ -1,0 +1,8 @@
+Original Question: {question}
+
+Research Brief:
+{research_brief}
+
+Additional context: {additional_context}
+
+Synthesize into a comprehensive, well-structured response for the user.

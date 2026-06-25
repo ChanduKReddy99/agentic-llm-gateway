@@ -1,0 +1,73 @@
+# =============================================================
+# Prompt Registry — Source of Truth
+# =============================================================
+# This file defines all prompts used by the agents.
+# Git is the source of truth. Langfuse is the runtime store.
+#
+# CI/CD flow:
+#   PR opened   → pull from Langfuse, run RAGAS eval vs this version
+#   PR merged   → push this version to Langfuse as "staging"
+#   Tag pushed  → promote "staging" label to "production"
+#
+# Label meanings:
+#   latest      → most recently pushed version
+#   staging     → merged to main, running RAGAS eval
+#   production  → promoted after RAGAS score ≥ threshold
+#
+# Agents always fetch label="production" at runtime.
+# =============================================================
+
+prompts:
+  - name: research_system_prompt
+    file: research_system_prompt.txt
+    label: production
+    description: "System prompt for Research Agent — defines output format"
+    config:
+      temperature: 0.3
+      max_tokens: 800
+
+  - name: research_query_prompt
+    file: research_query_prompt.txt
+    label: production
+    description: "Query decomposition prompt — breaks question into sub-queries"
+    config:
+      temperature: 0.3
+      max_tokens: 300
+
+  - name: research_synthesis_prompt
+    file: research_synthesis_prompt.txt
+    label: production
+    description: "Research synthesis prompt — combines search results into brief"
+    config:
+      temperature: 0.2
+      max_tokens: 800
+
+  - name: synthesis_system_prompt
+    file: synthesis_system_prompt.txt
+    label: production
+    description: "System prompt for Synthesis Agent"
+    config:
+      temperature: 0.4
+      max_tokens: 1200
+
+  - name: synthesis_draft_prompt
+    file: synthesis_draft_prompt.txt
+    label: production
+    description: "Draft generation prompt — writes initial response"
+    config:
+      temperature: 0.4
+      max_tokens: 1200
+
+  - name: synthesis_critique_prompt
+    file: synthesis_critique_prompt.txt
+    label: production
+    description: "Self-critique prompt — reviews and improves draft"
+    config:
+      temperature: 0.2
+      max_tokens: 600
+
+# Quality gate — CI fails if RAGAS average drops below this
+quality_gate:
+  ragas_avg_threshold: 0.60
+  faithfulness_threshold: 0.55
+  answer_relevancy_threshold: 0.60

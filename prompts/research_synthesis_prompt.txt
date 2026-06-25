@@ -1,0 +1,7 @@
+User Question: {question}
+
+Search Results Collected:
+{search_results}
+
+Synthesize these results into a comprehensive Research Brief following your instructions.
+Focus on facts that will help answer the original question.

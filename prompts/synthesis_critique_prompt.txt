@@ -1,0 +1,15 @@
+Review this response for quality:
+
+Question: {question}
+
+Response:
+{response}
+
+Check:
+1. Does it directly answer the question?
+2. Are claims supported by the research?
+3. Is it clear and well-structured?
+4. Are there any factual errors?
+
+If good, reply: "APPROVED: [brief reason]"
+If revision needed, provide the improved response directly.
