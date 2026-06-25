@@ -53,6 +53,9 @@ dependencies = [
     "structlog",
     "python-logging-loki",   # direct log push to Loki (no Promtail)
 
+    # --- Search ---
+    "tavily-python",
+
     # --- Utilities ---
     "tenacity",
     "rich",
