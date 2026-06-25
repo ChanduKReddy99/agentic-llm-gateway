@@ -1,0 +1,54 @@
+# =============================================================
+# Workflow: Push Prompts to Langfuse on merge to main
+# =============================================================
+# Trigger: PR merged to main
+# Action:  Push updated prompts from prompts/ → Langfuse as "staging"
+#
+# The prompts get label "staging" not "production" yet.
+# Agents in production still use label "production" (unchanged).
+# Promotion to production happens via the ragas-eval workflow.
+# =============================================================
+name: Push Prompts to Langfuse
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "prompts/**"         # only trigger when prompt files change
+
+jobs:
+  push-prompts:
+    name: Push prompts → Langfuse (staging)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --no-dev
+
+      - name: Push prompts to Langfuse (label=staging)
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          uv run python scripts/manage_prompts.py push --label staging
+
+      - name: Show prompt status
+        env:
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+        run: |
+          uv run python scripts/manage_prompts.py status
