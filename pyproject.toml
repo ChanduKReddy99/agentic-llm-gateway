@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentic-llm-gateway"
+version = "1.0.0"
+description = "Production-grade Agentic AI with LiteLLM Gateway, Guardrails, RAGAS & Full Observability"
+requires-python = ">=3.11"
+dependencies = [
+    # --- Web Framework ---
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "python-dotenv",
+
+    # --- LLM Gateway & Clients ---
+    "litellm",
+    "openai",
+    "anthropic",
+
+    # --- Agentic / Tools ---
+    "langchain",
+    "langchain-openai",
+    "langgraph",
+
+    # --- Guardrails ---
+    "guardrails-ai",
+    "presidio-analyzer",
+    "presidio-anonymizer",
+    "spacy",
+
+    # --- RAGAS Evaluation ---
+    "ragas",
+    "datasets",
+    "sentence-transformers",
+
+    # --- Caching ---
+    "redis",
+    "hiredis",
+
+    # --- Observability ---
+    "prometheus-client",
+    "prometheus-fastapi-instrumentator",
+    "opentelemetry-sdk",
+    "opentelemetry-api",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-httpx",
+    "langfuse",
+    "structlog",
+    "python-logging-loki",   # direct log push to Loki (no Promtail)
+
+    # --- Utilities ---
+    "tenacity",
+    "rich",
+    "typer",
+    "pyyaml",
+    "pandas",
+    "numpy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx",
+    "ruff",
+    "mypy",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
