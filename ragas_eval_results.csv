@@ -1,0 +1,6 @@
+question,faithfulness,answer_relevancy,context_precision,context_recall,average
+What is LiteLLM and why is it useful?,1.0,0.75,0.5,0.9,0.7875
+How does semantic caching reduce LLM costs?,1.0,0.6,0.667,0.557,0.706
+What are RAGAS evaluation metrics?,1.0,0.5,0.5,0.65,0.6625
+What is the purpose of guardrails in agentic AI?,1.0,0.5,1.0,1.0,0.875
+How does OpenTelemetry integrate with Tempo?,1.0,0.75,1.0,0.488,0.8095
