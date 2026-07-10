@@ -5,7 +5,7 @@ All values can be overridden via environment variables or .env file.
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,7 +43,11 @@ class Settings(BaseSettings):
     # --- Langfuse ---
     langfuse_secret_key: str = Field(default="sk-lf-agentic-local-secret", description="Langfuse secret key")
     langfuse_public_key: str = Field(default="pk-lf-agentic-local-public", description="Langfuse public key")
-    langfuse_host: str = "http://localhost:3001"
+    langfuse_host: str = Field(
+        default="http://localhost:3001",
+        validation_alias=AliasChoices("langfuse_host", "langfuse_base_url"),
+        description="Langfuse host URL"
+    )
 
     # --- OpenTelemetry ---
     otel_exporter_otlp_endpoint: str = "http://localhost:4317"
