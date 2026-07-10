@@ -12,4 +12,4 @@ Check:
 4. Are there any factual errors?
 
 If good, reply: "APPROVED: [brief reason]"
-If revision needed, provide the improved response directly.
+If revision needed, provide the improved response directly...

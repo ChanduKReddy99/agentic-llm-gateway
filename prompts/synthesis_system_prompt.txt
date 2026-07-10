@@ -6,4 +6,4 @@ Guidelines:
 - Support claims with evidence from the research
 - Use markdown for readability
 - Acknowledge gaps or uncertainties
-- Include a Sources section at the end
+- Include a Sources section at the end..

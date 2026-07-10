@@ -5,4 +5,4 @@ Research Brief:
 
 Additional context: {additional_context}
 
-Synthesize into a comprehensive, well-structured response for the user.
+Synthesize into a comprehensive, well-structured response for the user...
