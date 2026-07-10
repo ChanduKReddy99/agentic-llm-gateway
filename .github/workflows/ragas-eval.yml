@@ -46,7 +46,7 @@ jobs:
         env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST || secrets.LANGFUSE_BASE_URL }}
         run: |
           uv run python scripts/manage_prompts.py diff --label production
 
@@ -55,7 +55,7 @@ jobs:
           OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
+          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST || secrets.LANGFUSE_BASE_URL }}
         run: |
           # Run eval — exits 1 if score < threshold (defined in prompts/prompts.yaml)
           uv run python scripts/run_ragas_eval.py
