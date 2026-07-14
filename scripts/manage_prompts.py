@@ -42,14 +42,25 @@ REGISTRY    = PROMPTS_DIR / "prompts.yaml"
 
 
 def _get_langfuse():
+    import os
     from app.config.settings import get_settings
     settings = get_settings()
-    console.print(f"[yellow]DEBUG - LANGFUSE_HOST repr:[/yellow] {repr(settings.langfuse_host)}")
+
+    # Explicit priority: LANGFUSE_BASE_URL > LANGFUSE_HOST > settings default
+    # We do this manually because pydantic-settings will pick up LANGFUSE_HOST=""
+    # (an empty string from a missing GitHub secret) before checking LANGFUSE_BASE_URL.
+    host = (
+        os.environ.get("LANGFUSE_BASE_URL", "").strip()
+        or os.environ.get("LANGFUSE_HOST", "").strip()
+        or settings.langfuse_host
+    )
+    console.print(f"[yellow]DEBUG - resolved host:[/yellow] {repr(host)}")
+
     from langfuse import Langfuse
     lf = Langfuse(
         public_key=settings.langfuse_public_key,
         secret_key=settings.langfuse_secret_key,
-        host=settings.langfuse_host,
+        host=host,
     )
     return lf
 
