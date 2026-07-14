@@ -42,8 +42,10 @@ jobs:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_BASE_URL:   ${{ secrets.LANGFUSE_BASE_URL }}
-          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
         run: |
+          if [ -n "${{ secrets.LANGFUSE_HOST }}" ]; then
+            export LANGFUSE_HOST="${{ secrets.LANGFUSE_HOST }}"
+          fi
           uv run python scripts/manage_prompts.py push --label staging
 
       - name: Show prompt status
@@ -51,6 +53,8 @@ jobs:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_BASE_URL:   ${{ secrets.LANGFUSE_BASE_URL }}
-          LANGFUSE_HOST:       ${{ secrets.LANGFUSE_HOST }}
         run: |
+          if [ -n "${{ secrets.LANGFUSE_HOST }}" ]; then
+            export LANGFUSE_HOST="${{ secrets.LANGFUSE_HOST }}"
+          fi
           uv run python scripts/manage_prompts.py status
