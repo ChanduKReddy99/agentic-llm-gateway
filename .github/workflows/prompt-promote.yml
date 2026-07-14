@@ -50,7 +50,7 @@ jobs:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
-          LANGFUSE_HOST: ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST != '' && secrets.LANGFUSE_HOST || secrets.LANGFUSE_BASE_URL }}
         run: |
           uv run python scripts/manage_prompts.py promote \
             --from-label staging \
@@ -61,7 +61,7 @@ jobs:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
-          LANGFUSE_HOST: ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST != '' && secrets.LANGFUSE_HOST || secrets.LANGFUSE_BASE_URL }}
         run: |
           uv run python scripts/manage_prompts.py status
 

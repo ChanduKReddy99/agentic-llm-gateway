@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     langfuse_public_key: str = Field(default="pk-lf-agentic-local-public", description="Langfuse public key")
     langfuse_host: str = Field(
         default="http://localhost:3001",
-        validation_alias=AliasChoices("langfuse_base_url", "langfuse_host"),
+        validation_alias=AliasChoices("langfuse_host", "langfuse_base_url"),
         description="Langfuse host URL"
     )
 
