@@ -44,7 +44,6 @@ REGISTRY    = PROMPTS_DIR / "prompts.yaml"
 def _get_langfuse():
     from app.config.settings import get_settings
     settings = get_settings()
-    console.print(f"[yellow]DEBUG - LANGFUSE_HOST repr:[/yellow] {repr(settings.langfuse_host)}")
     from langfuse import Langfuse
     lf = Langfuse(
         public_key=settings.langfuse_public_key,
@@ -59,7 +58,7 @@ def _load_registry() -> dict:
         return yaml.safe_load(f)
 
 
-# ── push ─────────────────────────────────────────────────────────────────────
+# ===== push ===========================================
 
 @app.command()
 def push(
