@@ -211,10 +211,10 @@ def promote(
             version = getattr(staging, "version", None)
 
             # Update its labels to include to_label
-            lf.client.prompts.update_prompt_label(
-                name    = name,
-                version = version,
-                labels  = [to_label, "latest"],
+            lf.update_prompt(
+                name       = name,
+                version    = version,
+                new_labels = [to_label, "latest"],
             )
             table.add_row(name, str(version), f"[green]✅ {from_label}→{to_label}[/green]")
         except Exception as e:
