@@ -1,4 +1,4 @@
 User Question: {question}
 
 Identify the 2-3 most important sub-questions to research.
-List them briefly as a numbered list....
+List them briefly as a numbered list.
