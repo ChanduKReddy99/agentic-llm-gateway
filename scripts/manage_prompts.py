@@ -217,7 +217,11 @@ def promote(
             )
             table.add_row(name, str(version), f"[green]✅ {from_label}→{to_label}[/green]")
         except Exception as e:
-            table.add_row(name, "—", f"[red]❌ {str(e)[:50]}[/red]")
+            error_msg = str(e)
+            if len(error_msg) > 80:
+                error_msg = error_msg[:80] + "..."
+            table.add_row(name, "—", f"[red]❌ {error_msg}[/red]")
+            console.print(f"[red]Full error for {name}:[/red] {str(e)}")
             errors.append(name)
 
     lf.flush()
