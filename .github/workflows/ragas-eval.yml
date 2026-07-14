@@ -46,11 +46,8 @@ jobs:
         env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_BASE_URL:   ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_BASE_URL }}
         run: |
-          if [ -n "${{ secrets.LANGFUSE_HOST }}" ]; then
-            export LANGFUSE_HOST="${{ secrets.LANGFUSE_HOST }}"
-          fi
           uv run python scripts/manage_prompts.py diff --label production
 
       - name: Run RAGAS evaluation with new prompts
@@ -58,11 +55,8 @@ jobs:
           OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_BASE_URL:   ${{ secrets.LANGFUSE_BASE_URL }}
+          LANGFUSE_HOST: ${{ secrets.LANGFUSE_BASE_URL }}
         run: |
-          if [ -n "${{ secrets.LANGFUSE_HOST }}" ]; then
-            export LANGFUSE_HOST="${{ secrets.LANGFUSE_HOST }}"
-          fi
           # Run eval — exits 1 if score < threshold (defined in prompts/prompts.yaml)
           uv run python scripts/run_ragas_eval.py
           # Save score for PR comment
