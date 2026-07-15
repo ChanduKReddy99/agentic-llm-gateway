@@ -133,7 +133,7 @@ def push(
     console.print(f"   View in Langfuse: http://localhost:3001 → Prompts")
 
 
-# ── pull ─────────────────────────────────────────────────────────────────────
+# ==== pull =====================================================================
 
 @app.command()
 def pull(
@@ -172,7 +172,7 @@ def pull(
     console.print(f"\n[green]Prompts written to {PROMPTS_DIR}[/green]")
 
 
-# ── promote ───────────────────────────────────────────────────────────────────
+# ==== promote ====================================================================
 
 @app.command()
 def promote(
@@ -205,15 +205,20 @@ def promote(
     for p in registry["prompts"]:
         name = p["name"]
         try:
-            # Fetch the staging version
-            staging = lf.get_prompt(name, label=from_label)
+            # Fetch the staging version, explicitly bypassing the 60s SDK cache
+            staging = lf.get_prompt(name, label=from_label, cache_ttl_seconds=0)
             version = getattr(staging, "version", None)
 
-            # Update its labels to include to_label
+            if version is None:
+                raise ValueError(f"Could not resolve version for prompt '{name}' with label '{from_label}'")
+            
+            # update the prompt version
+            # this assigns production (to_label) to this specific version number.
+            # Langfuse will automatically remove the production label from any older version
             lf.update_prompt(
                 name       = name,
                 version    = version,
-                new_labels = [to_label, "latest"],
+                new_labels = [to_label],
             )
             table.add_row(name, str(version), f"[green]✅ {from_label}→{to_label}[/green]")
         except Exception as e:
@@ -235,7 +240,7 @@ def promote(
     console.print("   Agents will use the new version on the next request.")
 
 
-# ── diff ─────────────────────────────────────────────────────────────────────
+# ===== diff =====================================================================
 
 @app.command()
 def diff(
@@ -293,7 +298,7 @@ def diff(
         console.print("\n[yellow]⚠ Differences found. Run 'push' to sync.[/yellow]")
 
 
-# ── status ────────────────────────────────────────────────────────────────────
+# ===== status ====================================================================
 
 @app.command()
 def status():
@@ -321,7 +326,12 @@ def status():
             table.add_row(name, "[dim]not in Langfuse[/dim]", "—", in_git)
 
     console.print(table)
-    console.print(f"\nLangfuse UI: http://localhost:3001 → Prompts")
+    # console.print(f"\nLangfuse UI: http://localhost:3001 → Prompts")
+    # Get the host dynamically and clean up any trailing "/api"
+    from app.config.settings import get_settings
+    host_url = (get_settings().langfuse_host or "https://cloud.langfuse.com").split("/api")[0].rstrip("/")
+
+    console.print(f"\nLangfuse UI: {host_url}/prompts")
 
 
 if __name__ == "__main__":
